@@ -1,4 +1,3 @@
-! ###################################################################
 ! Copyright (c) 2013-2014, Marc De Graef/Carnegie Mellon University
 ! Modified      2017-2020, Martin Diehl/Max-Planck-Institut für Eisenforschung GmbH
 ! All rights reserved.
@@ -25,15 +24,10 @@
 ! CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 ! OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 ! USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-! ###################################################################
-
 !---------------------------------------------------------------------------------------------------
 !> @author Marc De Graef, Carnegie Mellon University
 !> @author Martin Diehl, Max-Planck-Institut für Eisenforschung GmbH
 !> @brief rotation storage and conversion
-!> @details: rotation is internally stored as quaternion. It can be inialized from different
-!> representations and also returns itself in different representations.
-!
 !  All methods and naming conventions based on Rowenhorst_etal2015
 !    Convention 1: coordinate frames are right-handed
 !    Convention 2: a rotation angle ω is taken to be positive for a counterclockwise rotation
@@ -45,9 +39,7 @@
 !    Convention 6: the real part of a quaternion is positive, Re(q) > 0
 !    Convention 7: P = -1
 !---------------------------------------------------------------------------------------------------
-
 module rotations
-  use prec
   use math
 
   implicit none
@@ -66,6 +58,7 @@ module rotations
     PREK = R1 * 2.0_pReal**(1.0_pReal/4.0_pReal)/BETA
 
 contains
+
 
 !---------------------------------------------------------------------------------------------------
 !> @author Marc De Graef, Carnegie Mellon University

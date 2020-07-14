@@ -20,7 +20,6 @@ module prec
   use, intrinsic :: IEEE_arithmetic
 
   implicit none
-  public
 
   ! https://software.intel.com/en-us/blogs/2017/03/27/doctor-fortran-in-it-takes-all-kinds
   integer,     parameter :: pReal      = IEEE_selected_real_kind(15,307)                            !< number with 15 significant digits, up to 1e+-307 (typically 64 bit)
