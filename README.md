@@ -19,3 +19,4 @@ make
   - Intel, version 18.0 or newer (`ifort`)
   - PGI, not tested (`pgfortran`)
 - cmake, version 3.10 or newer
+- LAPACK library in standard location
