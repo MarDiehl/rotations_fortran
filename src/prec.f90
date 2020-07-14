@@ -1,10 +1,20 @@
+! Copyright 2011-20 Max-Planck-Institut für Eisenforschung GmbH
+!
+! This program is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! This program is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with this program. If not, see <http://www.gnu.org/licenses/>.
 !--------------------------------------------------------------------------------------------------
-!> @author   Franz Roters, Max-Planck-Institut für Eisenforschung GmbH
-!> @author   Philip Eisenlohr, Max-Planck-Institut für Eisenforschung GmbH
-!> @author   Christoph Kords, Max-Planck-Institut für Eisenforschung GmbH
-!> @author   Martin Diehl, Max-Planck-Institut für Eisenforschung GmbH
-!> @author   Luv Sharma, Max-Planck-Institut für Eisenforschung GmbH
-!> @brief    setting precision for real and int type
+!> @author Martin Diehl, Max-Planck-Institut für Eisenforschung GmbH
+!> @brief  precision settings and floating point comparison
 !--------------------------------------------------------------------------------------------------
 module prec
   use, intrinsic :: IEEE_arithmetic
@@ -14,17 +24,12 @@ module prec
 
   ! https://software.intel.com/en-us/blogs/2017/03/27/doctor-fortran-in-it-takes-all-kinds
   integer,     parameter :: pReal      = IEEE_selected_real_kind(15,307)                            !< number with 15 significant digits, up to 1e+-307 (typically 64 bit)
-#if(INT==8)
-  integer,     parameter :: pInt       = selected_int_kind(18)                                      !< number with at least up to +-1e18 (typically 64 bit)
-#else
-  integer,     parameter :: pInt       = selected_int_kind(9)                                       !< number with at least up to +-1e9 (typically 32 bit)
-#endif
 
   real(pReal), private, parameter :: PREAL_EPSILON = epsilon(0.0_pReal)                             !< minimum positive number such that 1.0 + EPSILON /= 1.0.
   real(pReal), private, parameter :: PREAL_MIN     = tiny(0.0_pReal)                                !< smallest normalized floating point number
-  real(pReal), parameter :: tol_math_check = 1.0e-8_pReal                                           !< tolerance for internal math self-checks (rotation)
 
 contains
+
 
 !--------------------------------------------------------------------------------------------------
 !> @brief equality comparison for float with double precision
