@@ -63,15 +63,28 @@ program test_rotations
              1.0,-1.0, 1.0,-1.0, &
              1.0, 1.0,-1.0,-1.0, &
              1.0,-1.0,-1.0,-1.0],[4,52])
-  integer :: i
+  
+  real(pReal), dimension(:,:), allocatable :: testData
+  integer :: i,N
+  
+  N = size(setOfQuaternions,2)
+  allocate(testData(4,N))
+  testData(:,:size(setOfQuaternions,2)) = setOfQuaternions
 
-  do i = 1, size(setOfQuaternions,2)
+  do i = 1, size(testData,2)
+    testData(:,i) = testData(:,i)/norm2(testData(:,i))
+  enddo
+
+  do i = 1, size(testData,2)
     print*, i
-    call quaternion(setOfQuaternions(:,i))
+    call quaternion(testData(:,i))
   enddo
 
 contains 
 
+!--------------------------------------------------------------------------------------------------
+! Quaternion forward/backward
+!--------------------------------------------------------------------------------------------------
 subroutine quaternion(qu)
   real(pReal), dimension(4) :: qu
   

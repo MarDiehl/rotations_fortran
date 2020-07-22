@@ -218,7 +218,26 @@ pure function om2qu(om) result(qu)
   real(pReal), intent(in), dimension(3,3) :: om
   real(pReal),             dimension(4)   :: qu
 
-  qu = eu2qu(om2eu(om))
+  real(pReal) :: trace,s
+  trace = math_trace33(om)
+
+  if(trace > 0.0_pReal) then
+    s = 0.5_pReal / sqrt(trace+1.0_pReal)
+    qu = [0.25_pReal/s, (om(3,2)-om(2,3))*s,(om(1,3)-om(3,1))*s,(om(2,1)-om(1,2))*s]
+  else
+      if( om(1,1) > om(2,2) .and. om(1,1) > om(3,3) ) then
+          s = 2.0_pReal * sqrt( 1.0_pReal + om(1,1) - om(2,2) - om(3,3))
+          qu = [ (om(3,2) - om(2,3)) /s,0.25_pReal * s,(om(1,2) + om(2,1)) / s,(om(1,3) + om(3,1)) / s]
+      elseif (om(2,2) > om(3,3)) then
+          s = 2.0_pReal * sqrt( 1.0_pReal + om(2,2) - om(1,1) - om(3,3))
+          qu = [ (om(1,3) - om(3,1)) /s,(om(1,2) + om(2,1)) / s,0.25_pReal * s,(om(2,3) + om(3,2)) / s]
+      else
+          s = 2.0_pReal * sqrt( 1.0_pReal + om(3,3) - om(1,1) - om(2,2) )
+          qu = [ (om(2,1) - om(1,2)) /s,(om(1,3) + om(3,1)) / s,(om(2,3) + om(3,2)) / s,0.25_pReal * s]
+      endif
+  endif
+  if(qu(1)<0._pReal) qu =-1.0_pReal * qu
+  qu = qu*[1.0_pReal,P,P,P]
 
 end function om2qu
 
