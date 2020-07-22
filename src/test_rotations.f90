@@ -63,16 +63,33 @@ program test_rotations
              1.0,-1.0, 1.0,-1.0, &
              1.0, 1.0,-1.0,-1.0, &
              1.0,-1.0,-1.0,-1.0],[4,52])
+  integer :: i
+
+  do i = 1, size(setOfQuaternions,2)
+    print*, i
+    call quaternion(setOfQuaternions(:,i))
+  enddo
 
 contains 
+
 subroutine quaternion(qu)
   real(pReal), dimension(4) :: qu
+  
+  if(.not. quaternion_equal(qu,om2qu(qu2om(qu)))) stop 'om2qu/qu2om'
+
 end subroutine quaternion
 
-logical function quaternion_ok(qu1,qu2)
-  real(pReal), dimension(4) :: qu1,qu2
+function quaternion_equal(qu1,qu2) result(ok)
   
-end function
+  real(pReal), intent(in), dimension(4) :: qu1,qu2
+  logical :: ok
+
+  ok = all(dEq(qu1,qu2,1.0e-8_pReal))
+  if(dEq0(qu1(1),1.0e-12_pReal)) &
+    ok = ok .or. all(dEq(-1.0_pReal*qu1,qu2,1.0e-8_pReal))
+  if(.not. ok) print*, qu1,new_line(''),qu2
+
+end function quaternion_equal
 
 
 
