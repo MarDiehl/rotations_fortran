@@ -27,8 +27,8 @@
 !---------------------------------------------------------------------------------------------------
 !> @author Marc De Graef, Carnegie Mellon University
 !> @author Martin Diehl, Max-Planck-Institut für Eisenforschung GmbH
-!> @brief rotation storage and conversion
-!  All methods and naming conventions based on Rowenhorst_etal2015
+!> @brief rotation  conversion
+!  All methods and naming conventions based on Rowenhorst et al. 2015
 !    Convention 1: coordinate frames are right-handed
 !    Convention 2: a rotation angle ω is taken to be positive for a counterclockwise rotation
 !                  when viewing from the end point of the rotation axis towards the origin
@@ -245,6 +245,7 @@ end function om2qu
 !---------------------------------------------------------------------------------------------------
 !> @author Marc De Graef, Carnegie Mellon University
 !> @brief orientation matrix to Euler angles
+!> @details Two step check for special cases to avoid invalid operations (not needed for python)
 !---------------------------------------------------------------------------------------------------
 pure function om2eu(om) result(eu)
 
@@ -252,15 +253,15 @@ pure function om2eu(om) result(eu)
   real(pReal),             dimension(3)   :: eu
   real(pReal)                             :: zeta
 
-  if (abs(om(3,3)) < 1.0_pReal) then
-    zeta = 1.0_pReal/sqrt(1.0_pReal-om(3,3)**2.0_pReal)
+  if    (dNeq(abs(om(3,3)),1.0_pReal,1.e-8_pReal)) then
+    zeta = 1.0_pReal/sqrt(math_clip(1.0_pReal-om(3,3)**2.0_pReal,1e-64_pReal,1.0_pReal))
     eu = [atan2(om(3,1)*zeta,-om(3,2)*zeta), &
-          acos(om(3,3)), &
+          acos(math_clip(om(3,3),-1.0_pReal,1.0_pReal)), &
           atan2(om(1,3)*zeta, om(2,3)*zeta)]
   else
     eu = [atan2(om(1,2),om(1,1)), 0.5_pReal*PI*(1.0_pReal-om(3,3)),0.0_pReal ]
   end if
-
+  where(abs(eu) < 1.e-8_pReal) eu = 0.0_pReal
   where(eu<0.0_pReal) eu = mod(eu+2.0_pReal*PI,[2.0_pReal*PI,PI,2.0_pReal*PI])
 
 end function om2eu
@@ -397,7 +398,7 @@ pure function eu2om(eu) result(om)
   om(3,2) = -c(1)*s(2)
   om(3,3) =  c(2)
 
-  where(dEq0(om)) om = 0.0_pReal
+  where(abs(om)<1.0e-12_pReal) om = 0.0_pReal
 
 end function eu2om
 
