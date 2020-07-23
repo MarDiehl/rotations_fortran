@@ -84,9 +84,10 @@ program test_rotations
 
   do i = 1, size(testData,2)
     !print*, i
-    call quaternion(testData(:,i))
-    call matrix(qu2om(testData(:,i)))
-    call Eulers(qu2eu(testData(:,i)))
+    call quaternion(      testData(:,i))
+    call matrix    (qu2om(testData(:,i)))
+    call Eulers    (qu2eu(testData(:,i)))
+    call AxisAngle (qu2ax(testData(:,i)))
   enddo
 
 contains
@@ -111,9 +112,9 @@ function quaternion_equal(qu1,qu2) result(ok)
   real(pReal), intent(in), dimension(4) :: qu1,qu2
   logical :: ok
 
-  ok = all(dEq(qu1,qu2,1.0e-8_pReal))
+  ok = all(dEq(qu1,qu2,1.0e-7_pReal))
   if(dEq0(qu1(1),1.0e-12_pReal)) &
-    ok = ok .or. all(dEq(-1.0_pReal*qu1,qu2,1.0e-8_pReal))
+    ok = ok .or. all(dEq(-1.0_pReal*qu1,qu2,1.0e-7_pReal))
   if(.not. ok) print*, qu1,new_line(''),qu2
 
 end function quaternion_equal
@@ -139,7 +140,7 @@ function matrix_equal(om1,om2) result(ok)
   real(pReal), intent(in), dimension(3,3) :: om1,om2
   logical :: ok
 
-  ok = all(dEq(om1,om2,5.0e-8_pReal))
+  ok = all(dEq(om1,om2,5.0e-5_pReal))
   if(.not. ok) print*, om1,new_line(''),om2
 
 end function matrix_equal
@@ -165,10 +166,37 @@ function Eulers_equal(eu1,eu2) result(ok)
   real(pReal), intent(in), dimension(3) :: eu1,eu2
   logical :: ok
 
-  ! low tolerance needed for ho/cu
   ok = all(dEq(eu1,eu2,1.0e-5_pReal))
+  if(dEq0(eu1(1),1.0e-4_pReal) .or. dEq(eu1(1),PI,1.0e-4_pReal)) then
+    if(.not. ok) print*, 'sum', eu1(1)+eu1(3),eu2(1)+eu2(3)
+  endif
   if(.not. ok) print*, eu1,new_line(''),eu2
 
 end function Eulers_equal
+
+
+!--------------------------------------------------------------------------------------------------
+! Axis angle forward/backward
+!--------------------------------------------------------------------------------------------------
+subroutine AxisAngle(ax)
+  real(pReal), dimension(4) :: ax
+
+  if(.not. AxisAngle_equal(ax,qu2ax(ax2qu(ax)))) stop 'qu2ax/ax2qu'
+  if(.not. AxisAngle_equal(ax,om2ax(ax2om(ax)))) stop 'om2ax/ax2om'
+  if(.not. AxisAngle_equal(ax,eu2ax(ax2eu(ax)))) stop 'eu2ax/ax2eu'
+  if(.not. AxisAngle_equal(ax,ro2ax(ax2ro(ax)))) stop 'ro2ax/ax2ro'
+
+end subroutine AxisAngle
+
+function AxisAngle_equal(ax1,ax2) result(ok)
+
+  real(pReal), intent(in), dimension(4) :: ax1,ax2
+  logical :: ok
+
+  ok = all(dEq(ax1,ax2,1.0e-6_pReal))
+  if(dEq(ax1(4),PI,1.0e-6_pReal)) ok = ok .or. all(dEq(ax1*real([-1,-1,-1,1],pReal),ax2,1.0e-6_pReal))
+  if(.not. ok) print*, ax1,new_line(''),ax2
+
+end function AxisAngle_equal
 
 end program test_rotations
