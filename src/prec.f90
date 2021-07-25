@@ -22,7 +22,7 @@ module prec
   implicit none
 
   ! https://software.intel.com/en-us/blogs/2017/03/27/doctor-fortran-in-it-takes-all-kinds
-  integer,     parameter :: pReal      = IEEE_selected_real_kind(15,307)                            !< number with 15 significant digits, up to 1e+-307 (typically 64 bit)
+  integer,              parameter :: pReal = IEEE_selected_real_kind(15,307)                        !< number with 15 significant digits, up to 1e+-307 (typically 64 bit)
 
   real(pReal), private, parameter :: PREAL_EPSILON = epsilon(0.0_pReal)                             !< minimum positive number such that 1.0 + EPSILON /= 1.0.
   real(pReal), private, parameter :: PREAL_MIN     = tiny(0.0_pReal)                                !< smallest normalized floating point number
@@ -64,11 +64,7 @@ logical elemental pure function dNeq(a,b,tol)
   real(pReal), intent(in)           :: a,b
   real(pReal), intent(in), optional :: tol
 
-  if (present(tol)) then
-    dNeq = .not. dEq(a,b,tol)
-  else
-    dNeq = .not. dEq(a,b)
-  endif
+  dNeq = .not. dEq(a,b,tol)
 
 end function dNeq
 
@@ -107,11 +103,7 @@ logical elemental pure function dNeq0(a,tol)
   real(pReal), intent(in)           :: a
   real(pReal), intent(in), optional :: tol
 
-  if (present(tol)) then
-    dNeq0 = .not. dEq0(a,tol)
-  else
-    dNeq0 = .not. dEq0(a)
-  endif
+  dNeq0 = .not. dEq0(a,tol)
 
 end function dNeq0
 
@@ -152,11 +144,7 @@ logical elemental pure function cNeq(a,b,tol)
   complex(pReal), intent(in)           :: a,b
   real(pReal),    intent(in), optional :: tol
 
-  if (present(tol)) then
-    cNeq = .not. cEq(a,b,tol)
-  else
-    cNeq = .not. cEq(a,b)
-  endif
+  cNeq = .not. cEq(a,b,tol)
 
 end function cNeq
 
