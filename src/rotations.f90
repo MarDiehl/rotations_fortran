@@ -776,7 +776,7 @@ pure function ho2ax(ho) result(ax)
 
   ! normalize h and store the magnitude
   hmag_squared = sum(ho**2.0_pReal)
-  if (dEq0(hmag_squared)) then
+  if (abs(hmag_squared)<1e-8_pReal) then
     ax = [ 0.0_pReal, 0.0_pReal, 1.0_pReal, 0.0_pReal ]
   else
     hm = hmag_squared
