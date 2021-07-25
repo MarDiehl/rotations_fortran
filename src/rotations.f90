@@ -292,13 +292,13 @@ function om2ax(om) result(ax)
     ax(1:3) = [ 0.0_pReal, 0.0_pReal, 1.0_pReal ]
   else
     call dgeev('N','V',3,om_,3,Wr,Wi,devNull,3,VR,3,work,size(work,1),ierr)
-    if (ierr /= 0) stop 1
+    if (ierr /= 0) error stop 'LAPACK error'
 #if defined(__GFORTRAN__) &&  __GNUC__<9 || defined(__INTEL_COMPILER) && INTEL_COMPILER<1800 || defined(__PGI)
     i = maxloc(merge(1,0,cEq(cmplx(Wr,Wi,pReal),cmplx(1.0_pReal,0.0_pReal,pReal),tol=1.0e-14_pReal)),dim=1)
 #else
     i = findloc(cEq(cmplx(Wr,Wi,pReal),cmplx(1.0_pReal,0.0_pReal,pReal),tol=1.0e-14_pReal),.true.,dim=1) !find eigenvalue (1,0)
 #endif
-    if (i == 0) stop 1
+    if (i == 0) error stop 'om2ax conversion failed'
     ax(1:3) = VR(1:3,i)
     where (                dNeq0([om(2,3)-om(3,2), om(3,1)-om(1,3), om(1,2)-om(2,1)])) &
       ax(1:3) = sign(ax(1:3),-P *[om(2,3)-om(3,2), om(3,1)-om(1,3), om(1,2)-om(2,1)])
@@ -389,13 +389,13 @@ pure function eu2om(eu) result(om)
   s = sin(eu)
 
   om(1,1) =  c(1)*c(3)-s(1)*s(3)*c(2)
-  om(1,2) =  s(1)*c(3)+c(1)*s(3)*c(2)
-  om(1,3) =  s(3)*s(2)
   om(2,1) = -c(1)*s(3)-s(1)*c(3)*c(2)
-  om(2,2) = -s(1)*s(3)+c(1)*c(3)*c(2)
-  om(2,3) =  c(3)*s(2)
   om(3,1) =  s(1)*s(2)
+  om(1,2) =  s(1)*c(3)+c(1)*s(3)*c(2)
+  om(2,2) = -s(1)*s(3)+c(1)*c(3)*c(2)
   om(3,2) = -c(1)*s(2)
+  om(1,3) =  s(3)*s(2)
+  om(2,3) =  c(3)*s(2)
   om(3,3) =  c(2)
 
   where(abs(om)<1.0e-12_pReal) om = 0.0_pReal
@@ -786,7 +786,7 @@ pure function ho2ax(ho) result(ax)
     do i=3,16
       hm = hm*hmag_squared
       s  = s + tfit(i) * hm
-    end do
+    enddo
     ax = [ho/sqrt(hmag_squared), 2.0_pReal*acos(s)]
   end if
 
@@ -990,7 +990,7 @@ end function cu2ho
 !--------------------------------------------------------------------------
 !> @author Marc De Graef, Carnegie Mellon University
 !> @author Martin Diehl, Max-Planck-Institut für Eisenforschung GmbH
-!> @brief determine to which pyramid a point in a cubic grid belongs
+!> @brief Determine to which pyramid a point in a cubic grid belongs.
 !--------------------------------------------------------------------------
 pure function GetPyramidOrder(xyz)
 
