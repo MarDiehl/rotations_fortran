@@ -1,7 +1,16 @@
-# 3D Rotations (Fortran)
+# Convert Rotation Representations (Fortran)
 
 Fortran version of a 3D rotations conversion library.
 Based on [marcdegraef/3Drotations](https://github.com/marcdegraef/3Drotations).
+
+## Implemented representations
+- Unit quaternion
+- Euler angles (Bunge convention)
+- Rotation matrix
+- Axis angle representation
+- Rodrigues-Frank vector
+- Homochoric vector
+- Cubochoric vector
 
 ## Getting started
 
