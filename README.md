@@ -1,6 +1,7 @@
-# Quaternions
+# 3D Rotations
 
 Fortran version of a 3D rotations conversion library.
+Based on [marcdegraef/3Drotations](https://github.com/marcdegraef/3Drotations)
 
 ## Getting started
 
@@ -24,3 +25,8 @@ make
 ## License
 
 [GNU General Public License v3](https://www.gnu.org/licenses/gpl-3.0.en.html)
+
+## Issues
+
+- The tests for Euler angles fail, but this is because comparing Euler angles is difficult.
+- Tests for some functions are missing
