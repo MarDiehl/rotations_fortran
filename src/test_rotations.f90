@@ -159,7 +159,7 @@ function matrix_equal(om1,om2) result(ok)
   real(pReal), intent(in), dimension(3,3) :: om1,om2
   logical :: ok
 
-  ok = all(dEq(om1,om2,1.0e-4_pReal))
+  ok = all(dEq(om1,om2,5.0e-3_pReal))
   if(.not. ok) print*, om1,new_line(''),om2
 
 end function matrix_equal
@@ -184,10 +184,17 @@ function Eulers_equal(eu1,eu2) result(ok)
 
   real(pReal), intent(in), dimension(3) :: eu1,eu2
   logical :: ok
+  real(pReal) sum_phi1,sum_phi2
 
-  ok = all(dEq(eu1,eu2,1.0e-5_pReal))
-  if(dEq0(eu1(1),1.0e-4_pReal) .or. dEq(eu1(1),PI,1.0e-4_pReal)) then
-    if(.not. ok) print*, 'sum', eu1(1)+eu1(3),eu2(1)+eu2(3)
+  ok = all(dEq(eu1,eu2,1.0e-3_pReal))
+  if(dEq0(eu1(2),1.0e-3_pReal) .or. dEq(eu1(2),PI,1.0e-3_pReal)) then
+    sum_phi1 = mod(eu1(1)+eu1(3)+2.0_pReal*PI,2.0_pReal*PI)
+    sum_phi2 = mod(eu2(1)+eu2(3)+2.0_pReal*PI,2.0_pReal*PI)
+    ok = dEq(sum_phi1,sum_phi2,5.0e-3_pReal) .or. &
+         dEq(sum_phi1+2._pReal*PI,sum_phi2,5.0e-3_pReal) .or. &
+         dEq(sum_phi1-2._pReal*PI,sum_phi2,5.0e-3_pReal) .or. &
+         dEq(sum_phi1,sum_phi2+2._pReal*PI,5.0e-3_pReal) .or. &
+         dEq(sum_phi1,sum_phi2-2._pReal*PI,5.0e-3_pReal)
   endif
   if(.not. ok) print*, eu1,new_line(''),eu2
 
@@ -215,7 +222,9 @@ function axisAngle_equal(ax1,ax2) result(ok)
   logical :: ok
 
   ok = all(dEq(ax1,ax2,1.0e-6_pReal))
-  if(dEq(ax1(4),PI,1.0e-6_pReal)) ok = ok .or. all(dEq(ax1*real([-1,-1,-1,1],pReal),ax2,1.0e-6_pReal))
+  if(dEq(ax1(4),PI,1.0e-3_pReal)) ok = ok .or. all(dEq(ax1*real([-1,-1,-1,1],pReal),ax2,1.0e-3_pReal))
+  if(dEq(ax2(4),PI,1.0e-3_pReal)) ok = ok .or. all(dEq(ax1*real([-1,-1,-1,1],pReal),ax1,1.0e-3_pReal))
+  ok = ok .or. dEq0(ax1(4),1.0e-3_pReal) .or. dEq0(ax2(4),1.0e-3_pReal)
   if(.not. ok) print*, ax1,new_line(''),ax2
 
 end function axisAngle_equal

@@ -253,10 +253,10 @@ pure function om2eu(om) result(eu)
   real(pReal),             dimension(3)   :: eu
   real(pReal)                             :: zeta
 
-  if    (dNeq(abs(om(3,3)),1.0_pReal,1.e-8_pReal)) then
-    zeta = 1.0_pReal/sqrt(math_clip(1.0_pReal-om(3,3)**2.0_pReal,1e-64_pReal,1.0_pReal))
+  if    (dNeq(abs(om(3,3)),1.0_pReal,1.e-12_pReal)) then
+    zeta = 1.0_pReal/sqrt(1.0_pReal-om(3,3)**2.0_pReal)
     eu = [atan2(om(3,1)*zeta,-om(3,2)*zeta), &
-          acos(math_clip(om(3,3),-1.0_pReal,1.0_pReal)), &
+          acos(om(3,3)), &
           atan2(om(1,3)*zeta, om(2,3)*zeta)]
   else
     eu = [atan2(om(1,2),om(1,1)), 0.5_pReal*PI*(1.0_pReal-om(3,3)),0.0_pReal ]
@@ -419,9 +419,9 @@ pure function eu2ax(eu) result(ax)
   delta = 0.5_pReal*(eu(1)-eu(3))
   tau   = sqrt(t**2+sin(sigma)**2)
 
-  alpha = merge(PI, 2.0_pReal*atan(tau/cos(sigma)), dEq(sigma,PI*0.5_pReal,tol=1.0e-15_pReal))
+  alpha = merge(PI, 2.0_pReal*atan(tau/cos(sigma)), abs(cos(sigma))<1.0e-15_pReal)
 
-  if (dEq0(alpha)) then                                                                             ! return a default identity axis-angle pair
+  if (abs(alpha)<1.0e-12) then                                                                      ! return a default identity axis-angle pair
     ax = [ 0.0_pReal, 0.0_pReal, 1.0_pReal, 0.0_pReal ]
   else
     ax(1:3) = -P/tau * [ t*cos(delta), t*sin(delta), sin(sigma) ]                                   ! passive axis-angle pair so a minus sign in front
