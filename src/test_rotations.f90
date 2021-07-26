@@ -249,8 +249,10 @@ function Rodrigues_equal(ro1,ro2) result(ok)
   logical :: ok
   real(pReal) :: cutoff = tan(PI*.5_pReal*(1.0-1.e-5_pReal))
   
-  ok = all(dEq(math_clip(ro1,right=cutoff),math_clip(ro2,right=cutoff),1.0e-6_pReal)) \
-     .or. dEq0(ro1(4),1e-7_pReal)
+  ok = all(dEq0(math_clip(ro1,right=cutoff)-math_clip(ro2,right=cutoff),1.0e-3_pReal)) \
+     .or. dEq0(ro1(4),1e-5_pReal)
+  if (ro1(4) > cutoff) &
+    ok = ok .or. all(dEq(ro1(:3)*(-1.0_pReal),ro2(:3),1.0e-3_pReal))
   if(.not. ok) print*, ro1,new_line(''),ro2
 
 end function Rodrigues_equal
