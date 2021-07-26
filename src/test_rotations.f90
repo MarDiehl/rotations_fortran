@@ -105,7 +105,7 @@ program test_rotations
     call matrix    (qu2om(testData(:,i)))
     call Eulers    (qu2eu(testData(:,i)))
     call axisAngle (qu2ax(testData(:,i)))
-    call Rodrigues (qu2ax(testData(:,i)))
+    call Rodrigues (qu2ro(testData(:,i)))
   enddo
   print*, 'All fine'
 
@@ -221,9 +221,9 @@ function axisAngle_equal(ax1,ax2) result(ok)
   real(pReal), intent(in), dimension(4) :: ax1,ax2
   logical :: ok
 
-  ok = all(dEq(ax1,ax2,1.0e-6_pReal))
-  if(dEq(ax1(4),PI,1.0e-3_pReal)) ok = ok .or. all(dEq(ax1*real([-1,-1,-1,1],pReal),ax2,1.0e-3_pReal))
-  if(dEq(ax2(4),PI,1.0e-3_pReal)) ok = ok .or. all(dEq(ax1*real([-1,-1,-1,1],pReal),ax1,1.0e-3_pReal))
+  ok = all(dEq(ax1,ax2,1.0e-3_pReal))
+  if(dEq(ax1(4),PI,5.0e-3_pReal)) ok = ok .or. all(dEq(ax1*real([-1,-1,-1,1],pReal),ax2,1.0e-3_pReal))
+  if(dEq(ax2(4),PI,5.0e-3_pReal)) ok = ok .or. all(dEq(ax1*real([-1,-1,-1,1],pReal),ax1,1.0e-3_pReal))
   ok = ok .or. dEq0(ax1(4),1.0e-3_pReal) .or. dEq0(ax2(4),1.0e-3_pReal)
   if(.not. ok) print*, ax1,new_line(''),ax2
 
