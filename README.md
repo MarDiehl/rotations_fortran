@@ -1,7 +1,7 @@
-# 3D Rotations
+# 3D Rotations (Fortran)
 
 Fortran version of a 3D rotations conversion library.
-Based on [marcdegraef/3Drotations](https://github.com/marcdegraef/3Drotations)
+Based on [marcdegraef/3Drotations](https://github.com/marcdegraef/3Drotations).
 
 ## Getting started
 
@@ -29,4 +29,4 @@ make
 ## Issues
 
 - The tests for Euler angles fail, but this is because comparing Euler angles is difficult.
-- Tests for some functions are missing
+- Some functions have no unit tests.
