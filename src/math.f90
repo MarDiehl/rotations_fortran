@@ -20,7 +20,9 @@ module math
   use prec
 
   implicit none
-  real(pReal),    parameter :: PI = acos(-1.0_pReal)                                                !< ratio of a circle's circumference to its diameter
+  real(pReal), parameter :: &
+    PI = acos(-1.0_pReal), &                                                                        !< ratio of a circle's circumference to its diameter
+    TAU = 2.0_pReal*PI                                                                              !< ratio of a circle's circumference to its radius
 
 contains
 

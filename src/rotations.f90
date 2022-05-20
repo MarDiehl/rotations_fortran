@@ -61,7 +61,6 @@ module rotations
 
   real(pReal), parameter :: &
     P    = -1.0_pReal, &
-    SPI  = sqrt(PI), &
     PREF = sqrt(6.0_pReal/PI), &
     A    = PI**(5.0_pReal/6.0_pReal)/6.0_pReal**(1.0_pReal/6.0_pReal), &
     AP   = PI**(2.0_pReal/3.0_pReal), &
@@ -100,7 +99,8 @@ pure function qu2om(qu) result(om)
   om(3,2) = 2.0_pReal*(qu(4)*qu(3)+qu(1)*qu(2))
   om(1,3) = 2.0_pReal*(qu(2)*qu(4)+qu(1)*qu(3))
 
-  if (P < 0.0_pReal) om = transpose(om)
+  if (sign(1.0_pReal,P) < 0.0_pReal) om = transpose(om)
+  om = om/math_det33(om)**(1.0_pReal/3.0_pReal)
 
 end function qu2om
 
@@ -129,7 +129,7 @@ pure function qu2eu(qu) result(eu)
           atan2( 2.0_pReal*chi, q03-q12 ), &
           atan2(( P*qu(1)*qu(3)+qu(2)*qu(4))*chi, (-P*qu(1)*qu(2)+qu(3)*qu(4))*chi )]
   endif degenerated
-  where(eu<0.0_pReal) eu = mod(eu+2.0_pReal*PI,[2.0_pReal*PI,PI,2.0_pReal*PI])
+  where(sign(1.0_pReal,eu)<0.0_pReal) eu = mod(eu+TAU,[TAU,PI,TAU])
 
 end function qu2eu
 
@@ -225,7 +225,7 @@ end function qu2cu
 
 !---------------------------------------------------------------------------------------------------
 !> @author Martin Diehl, Max-Planck-Institut für Eisenforschung GmbH
-!> @brief convert rotation matrix to cubochoric
+!> @brief convert rotation matrix to unit quaternion
 !> @details the original formulation (direct conversion) had (numerical?) issues
 !---------------------------------------------------------------------------------------------------
 pure function om2qu(om) result(qu)
@@ -251,15 +251,16 @@ pure function om2qu(om) result(qu)
           qu = [ (om(2,1) - om(1,2)) /s,(om(1,3) + om(3,1)) / s,(om(2,3) + om(3,2)) / s,0.25_pReal * s]
       endif
   endif
-  if(qu(1)<0._pReal) qu =-1.0_pReal * qu
-  qu = qu*[1.0_pReal,P,P,P]
+  if(sign(1.0_pReal,qu(1))<0.0_pReal) qu =-1.0_pReal * qu
+  qu(2:4) = merge(qu(2:4),qu(2:4)*P,dEq0(qu(2:4)))
+  qu = qu/norm2(qu)
 
 end function om2qu
 
 
 !---------------------------------------------------------------------------------------------------
 !> @author Marc De Graef, Carnegie Mellon University
-!> @brief orientation matrix to Euler angles
+!> @brief convert orientation matrix to Euler angles
 !> @details Two step check for special cases to avoid invalid operations (not needed for python)
 !---------------------------------------------------------------------------------------------------
 pure function om2eu(om) result(eu)
@@ -268,16 +269,16 @@ pure function om2eu(om) result(eu)
   real(pReal),             dimension(3)   :: eu
   real(pReal)                             :: zeta
 
-  if    (dNeq(abs(om(3,3)),1.0_pReal,1.e-10_pReal)) then
-    zeta = 1.0_pReal/sqrt(1.0_pReal-om(3,3)**2.0_pReal)
+  if    (dNeq(abs(om(3,3)),1.0_pReal,1.e-8_pReal)) then
+    zeta = 1.0_pReal/sqrt(math_clip(1.0_pReal-om(3,3)**2,1e-64_pReal,1.0_pReal))
     eu = [atan2(om(3,1)*zeta,-om(3,2)*zeta), &
-          acos(om(3,3)), &
+          acos(math_clip(om(3,3),-1.0_pReal,1.0_pReal)), &
           atan2(om(1,3)*zeta, om(2,3)*zeta)]
   else
     eu = [atan2(om(1,2),om(1,1)), 0.5_pReal*PI*(1.0_pReal-om(3,3)),0.0_pReal ]
   end if
   where(abs(eu) < 1.e-8_pReal) eu = 0.0_pReal
-  where(eu<0.0_pReal) eu = mod(eu+2.0_pReal*PI,[2.0_pReal*PI,PI,2.0_pReal*PI])
+  where(sign(1.0_pReal,eu)<0.0_pReal) eu = mod(eu+TAU,[TAU,PI,TAU])
 
 end function om2eu
 
@@ -308,11 +309,7 @@ function om2ax(om) result(ax)
   else
     call dgeev('N','V',3,om_,3,Wr,Wi,devNull,3,VR,3,work,size(work,1),ierr)
     if (ierr /= 0) error stop 'LAPACK error'
-#if defined(__GFORTRAN__) &&  __GNUC__<9 || defined(__INTEL_COMPILER) && INTEL_COMPILER<1800 || defined(__PGI)
-    i = maxloc(merge(1,0,cEq(cmplx(Wr,Wi,pReal),cmplx(1.0_pReal,0.0_pReal,pReal),tol=1.0e-14_pReal)),dim=1)
-#else
     i = findloc(cEq(cmplx(Wr,Wi,pReal),cmplx(1.0_pReal,0.0_pReal,pReal),tol=1.0e-14_pReal),.true.,dim=1) !find eigenvalue (1,0)
-#endif
     if (i == 0) error stop 'om2ax conversion failed'
     ax(1:3) = VR(1:3,i)
     where (                dNeq0([om(2,3)-om(3,2), om(3,1)-om(1,3), om(1,2)-om(2,1)])) &
@@ -384,7 +381,7 @@ pure function eu2qu(eu) result(qu)
         -P*sPhi*cos(ee(1)-ee(3)), &
         -P*sPhi*sin(ee(1)-ee(3)), &
         -P*cPhi*sin(ee(1)+ee(3))]
-  if(qu(1) < 0.0_pReal) qu = qu * (-1.0_pReal)
+  if(sign(1.0_pReal,qu(1)) < 0.0_pReal) qu = qu * (-1.0_pReal)
 
 end function eu2qu
 
@@ -434,14 +431,14 @@ pure function eu2ax(eu) result(ax)
   delta = 0.5_pReal*(eu(1)-eu(3))
   tau   = sqrt(t**2+sin(sigma)**2)
 
-  alpha = merge(PI, 2.0_pReal*atan(tau/cos(sigma)), abs(cos(sigma))<1.0e-15_pReal)
+  alpha = merge(PI, 2.0_pReal*atan(tau/cos(sigma)), dEq(sigma,PI*0.5_pReal,tol=1.0e-15_pReal))
 
-  if (abs(alpha)<1.0e-12) then                                                                      ! return a default identity axis-angle pair
+  if (dEq0(alpha)) then                                                                             ! return a default identity axis-angle pair
     ax = [ 0.0_pReal, 0.0_pReal, 1.0_pReal, 0.0_pReal ]
   else
     ax(1:3) = -P/tau * [ t*cos(delta), t*sin(delta), sin(sigma) ]                                   ! passive axis-angle pair so a minus sign in front
     ax(4) = alpha
-    if (alpha < 0.0_pReal) ax = -ax                                                                 ! ensure alpha is positive
+    if (sign(1.0_pReal,alpha) < 0.0_pReal) ax = -ax                                                 ! ensure alpha is positive
   end if
 
 end function eu2ax
@@ -790,8 +787,8 @@ pure function ho2ax(ho) result(ax)
             +0.000003953714684212874_pReal, -0.00000036555001439719544_pReal ]
 
   ! normalize h and store the magnitude
-  hmag_squared = sum(ho**2.0_pReal)
-  if (abs(hmag_squared)<1e-8_pReal) then
+  hmag_squared = sum(ho**2)
+  if (dEq0(hmag_squared)) then
     ax = [ 0.0_pReal, 0.0_pReal, 1.0_pReal, 0.0_pReal ]
   else
     hm = hmag_squared
@@ -858,7 +855,7 @@ pure function ho2cu(ho) result(cu)
     else special
       q2 = qxy + maxval(abs(xyz2))**2
       sq2 = sqrt(q2)
-      q = (beta/R2/R1) * sqrt(q2*qxy/(q2-maxval(abs(xyz2))*sq2))
+      q = (BETA/R2/R1) * sqrt(q2*qxy/(q2-maxval(abs(xyz2))*sq2))
       tt = (minval(abs(xyz2))**2+maxval(abs(xyz2))*sq2)/R2/qxy
       Tinv = q * sign(1.0_pReal,xyz2) * merge([ 1.0_pReal, acos(math_clip(tt,-1.0_pReal,1.0_pReal))/PI12], &
                                               [ acos(math_clip(tt,-1.0_pReal,1.0_pReal))/PI12, 1.0_pReal], &
@@ -866,7 +863,7 @@ pure function ho2cu(ho) result(cu)
     endif special
 
     ! inverse M_1
-    xyz1 = [ Tinv(1), Tinv(2), sign(1.0_pReal,xyz3(3)) * rs / pref ] /sc
+    xyz1 = [ Tinv(1), Tinv(2), sign(1.0_pReal,xyz3(3)) * rs / PREF ]/SC
 
     ! reverse the coordinates back to order according to the original pyramid number
     cu = xyz1(p(:,2))
@@ -972,26 +969,26 @@ pure function cu2ho(cu) result(ho)
   else center
     ! get pyramide and scale by grid parameter ratio
     p = GetPyramidOrder(cu)
-    XYZ = cu(p(:,1)) * sc
+    XYZ = cu(p(:,1)) * SC
 
     ! intercept all the points along the z-axis
     special: if (all(dEq0(XYZ(1:2)))) then
-      LamXYZ = [ 0.0_pReal, 0.0_pReal, pref * XYZ(3) ]
+      LamXYZ = [ 0.0_pReal, 0.0_pReal, PREF * XYZ(3) ]
     else special
       order = merge( [2,1], [1,2], abs(XYZ(2)) <= abs(XYZ(1)))                                      ! order of absolute values of XYZ
       q = PI12 *  XYZ(order(1))/XYZ(order(2))                                                       ! smaller by larger
       c = cos(q)
       s = sin(q)
-      q = prek * XYZ(order(2))/ sqrt(R2-c)
+      q = PREK * XYZ(order(2))/ sqrt(R2-c)
       T = [ (R2*c - 1.0), R2 * s] * q
 
       ! transform to sphere grid (inverse Lambert)
       ! [note that there is no need to worry about dividing by zero, since XYZ(3) can not become zero]
       c = sum(T**2)
-      s = Pi * c/(24.0*XYZ(3)**2)
-      c = sPi * c / sqrt(24.0_pReal) / XYZ(3)
+      s = c * PI/(24.0*XYZ(3)**2)
+      c = c * sqrt(PI/24.0_pReal) / XYZ(3)
       q = sqrt( 1.0 - s )
-      LamXYZ = [ T(order(2)) * q, T(order(1)) * q, pref * XYZ(3) - c ]
+      LamXYZ = [ T(order(2)) * q, T(order(1)) * q, PREF * XYZ(3) - c ]
     endif special
 
     ! reverse the coordinates back to order according to the original pyramid number
